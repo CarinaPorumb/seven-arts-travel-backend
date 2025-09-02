@@ -2,17 +2,10 @@ package ro.sevenartstravel.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-
-import java.util.Set;
-import java.util.UUID;
 
 @Data
 public class UserUpdateDTO {
-
-    @NotNull(message = "ID must not be null")
-    private UUID id;
 
     @NotBlank(message = "Username must not be blank")
     private String username;
@@ -25,7 +18,5 @@ public class UserUpdateDTO {
     private String email;
 
     private String password;
-
-    private Set<String> roles;
 
 }

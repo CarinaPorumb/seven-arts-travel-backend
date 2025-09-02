@@ -1,7 +1,5 @@
 package ro.sevenartstravel.entity;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -11,7 +9,6 @@ import ro.sevenartstravel.enums.Nationality;
 
 import java.io.Serializable;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -22,7 +19,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @ToString
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Artist extends Auditable implements Serializable {
 
     @Id
@@ -63,15 +59,13 @@ public class Artist extends Auditable implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Artist artist = (Artist) o;
-        return Objects.equals(id, artist.id);
+        if (!(o instanceof Artist other)) return false;
+        return id != null && id.equals(other.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id);
+        return id != null ? id.hashCode() : 31;
     }
 
 }

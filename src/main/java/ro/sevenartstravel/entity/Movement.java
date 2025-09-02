@@ -6,7 +6,6 @@ import lombok.*;
 
 import java.io.Serializable;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -33,7 +32,7 @@ public class Movement extends Auditable implements Serializable {
     private Integer endYear;
     private String originRegion;
 
-    @OneToMany(mappedBy = "movement")
+    @OneToMany(mappedBy = "movement", fetch = FetchType.LAZY)
     @ToString.Exclude
     @Builder.Default
     private Set<ArtObject> artObjects = new HashSet<>();
@@ -44,14 +43,13 @@ public class Movement extends Auditable implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Movement movement = (Movement) o;
-        return Objects.equals(id, movement.id);
+        if (!(o instanceof Movement other)) return false;
+        return id != null && id.equals(other.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id);
+        return id != null ? id.hashCode() : 31;
     }
+
 }

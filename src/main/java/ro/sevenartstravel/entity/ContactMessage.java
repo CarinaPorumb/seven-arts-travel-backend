@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 import java.io.Serializable;
-import java.util.Objects;
 import java.util.UUID;
 
 @Builder
@@ -14,6 +13,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 @Entity
 public class ContactMessage extends Auditable implements Serializable {
 
@@ -38,15 +38,13 @@ public class ContactMessage extends Auditable implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        ContactMessage contactMessage = (ContactMessage) o;
-        return Objects.equals(id, contactMessage.id);
+        if (!(o instanceof ContactMessage other)) return false;
+        return id != null && id.equals(other.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id);
+        return id != null ? id.hashCode() : 31;
     }
 
 }

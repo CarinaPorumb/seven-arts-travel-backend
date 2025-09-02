@@ -1,51 +1,31 @@
 package ro.sevenartstravel.mapper;
 
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.ReportingPolicy;
 import ro.sevenartstravel.dto.UserCreateDTO;
 import ro.sevenartstravel.dto.UserDTO;
 import ro.sevenartstravel.dto.UserUpdateDTO;
 import ro.sevenartstravel.entity.Role;
 import ro.sevenartstravel.entity.User;
-import ro.sevenartstravel.service.crud.CrudMapper;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring")
-public interface UserMapper extends CrudMapper<UserDTO, User> {
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+public interface UserMapper {
 
-    @Override
-    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "roles", expression = "java(mapRolesToNames(user))")
+    UserDTO toUser(User user);
+
+    // CREATE
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "emailConfirm", ignore = true)
     @Mapping(target = "passwordConfirm", ignore = true)
     @Mapping(target = "randomToken", ignore = true)
     @Mapping(target = "randomTokenEmail", ignore = true)
-    @Mapping(target = "authorities", ignore = true)
-    @Mapping(target = "roles", ignore = true)
-    @Mapping(target = "accountNonExpired", ignore = true)
-    @Mapping(target = "accountNonLocked", ignore = true)
-    @Mapping(target = "credentialsNonExpired", ignore = true)
-    @Mapping(target = "enabled", ignore = true)
-    @Mapping(target = "version", ignore = true)
-    User toEntity(UserDTO dto);
-
-    @Override
-    @Mapping(target = "roles", expression = "java(mapRolesToNames(user))")
-    UserDTO toDTO(User user);
-
-    @Override
-    @Mapping(target = "roles", ignore = true)
-    void updateEntity(@MappingTarget User entity, UserDTO dto);
-
-    @Override
-    @Mapping(target = "roles", ignore = true)
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void patchEntity(@MappingTarget User entity, UserDTO dto);
-
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "roles", ignore = true)
-    @Mapping(target = "randomToken", ignore = true)
-    @Mapping(target = "randomTokenEmail", ignore = true)
-    @Mapping(target = "authorities", ignore = true)
     @Mapping(target = "accountNonExpired", ignore = true)
     @Mapping(target = "accountNonLocked", ignore = true)
     @Mapping(target = "credentialsNonExpired", ignore = true)
@@ -53,20 +33,35 @@ public interface UserMapper extends CrudMapper<UserDTO, User> {
     @Mapping(target = "version", ignore = true)
     User toEntity(UserCreateDTO dto);
 
+    //UPDATE
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "version", ignore = true)
     @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "passwordConfirm", ignore = true)
+    @Mapping(target = "emailConfirm", ignore = true)
+    @Mapping(target = "accountNonExpired", ignore = true)
+    @Mapping(target = "accountNonLocked", ignore = true)
+    @Mapping(target = "credentialsNonExpired", ignore = true)
     @Mapping(target = "randomToken", ignore = true)
     @Mapping(target = "randomTokenEmail", ignore = true)
-    @Mapping(target = "authorities", ignore = true)
+    @Mapping(target = "enabled", ignore = true)
+    void updateUserEntity(@MappingTarget User entity, UserUpdateDTO dto);
+
+    // PATCH
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "passwordConfirm", ignore = true)
+    @Mapping(target = "emailConfirm", ignore = true)
+    @Mapping(target = "randomToken", ignore = true)
+    @Mapping(target = "randomTokenEmail", ignore = true)
     @Mapping(target = "accountNonExpired", ignore = true)
     @Mapping(target = "accountNonLocked", ignore = true)
     @Mapping(target = "credentialsNonExpired", ignore = true)
     @Mapping(target = "enabled", ignore = true)
-    @Mapping(target = "version", ignore = true)
-    User toEntity(UserUpdateDTO dto);
-
-    @Mapping(target = "roles", ignore = true)
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateEntity(@MappingTarget User entity, UserUpdateDTO dto);
+    void patchUserEntity(@MappingTarget User entity, UserUpdateDTO dto);
 
     default Set<String> mapRolesToNames(User user) {
         if (user.getRoles() == null) return Set.of();
@@ -75,5 +70,4 @@ public interface UserMapper extends CrudMapper<UserDTO, User> {
                 .map(Role::getName)
                 .collect(Collectors.toSet());
     }
-
 }

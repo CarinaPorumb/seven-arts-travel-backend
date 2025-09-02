@@ -10,10 +10,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ArtObjectMapper extends CrudMapper<ArtObjectDTO, ArtObject> {
 
     @Override
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "artists", ignore = true)
     @Mapping(target = "movement", ignore = true)
     ArtObject toEntity(ArtObjectDTO dto);
@@ -25,10 +26,16 @@ public interface ArtObjectMapper extends CrudMapper<ArtObjectDTO, ArtObject> {
     ArtObjectDTO toDTO(ArtObject artObject);
 
     @Override
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "artists", ignore = true)
+    @Mapping(target = "movement", ignore = true)
     void updateEntity(@MappingTarget ArtObject entity, ArtObjectDTO dto);
 
     @Override
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "artists", ignore = true)
+    @Mapping(target = "movement", ignore = true)
     void patchEntity(@MappingTarget ArtObject entity, ArtObjectDTO dto);
 
     default Set<UUID> mapArtistsToIds(ArtObject entity) {

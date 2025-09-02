@@ -5,16 +5,14 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ro.sevenartstravel.entity.Role;
 import ro.sevenartstravel.entity.User;
-import ro.sevenartstravel.exception.NotFoundException;
 import ro.sevenartstravel.service.entity.UserService;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Service
@@ -23,12 +21,13 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final UserService userService;
 
     @Override
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) {
 
         User user = userService.findUserEntityByUsername(username)
-                .orElseThrow(() -> new NotFoundException("User", username));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
-        List<GrantedAuthority> authorities = getUserAuthority(user.getRoles());
+        List<GrantedAuthority> authorities = mapRolesToAuthorities(user.getRoles());
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
@@ -39,10 +38,22 @@ public class CustomUserDetailsService implements UserDetailsService {
                 authorities);
     }
 
-    private List<GrantedAuthority> getUserAuthority(Set<Role> userRoles) {
+    private List<GrantedAuthority> mapRolesToAuthorities(Set<Role> userRoles) {
+        if (userRoles == null || userRoles.isEmpty()) return Collections.emptyList();
+
         Set<GrantedAuthority> roles = new HashSet<>();
+
         for (Role role : userRoles) {
-            roles.add(new SimpleGrantedAuthority(role.getName()));
+            if (role == null || role.getName() == null) continue;
+
+            String name = role.getName().trim().toUpperCase();
+            if (name.isEmpty()) continue;
+
+            if (!name.startsWith("ROLE_")){
+                name = "ROLE_" + name;
+            }
+
+            roles.add(new SimpleGrantedAuthority(name));
         }
         return new ArrayList<>(roles);
     }

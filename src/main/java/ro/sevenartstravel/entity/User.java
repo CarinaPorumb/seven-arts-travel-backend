@@ -1,25 +1,24 @@
 package ro.sevenartstravel.entity;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 @Builder
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@ToString
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
-public class User extends Auditable implements UserDetails, Serializable {
+@ToString(exclude = {"password", "roles"})
+public class User extends Auditable implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -32,14 +31,21 @@ public class User extends Auditable implements UserDetails, Serializable {
 
     @Column(nullable = false)
     @NotBlank(message = "Password must not be blank")
+    @JsonIgnore
     private String password;
 
-    private boolean accountNonExpired;
-    private boolean accountNonLocked;
-    private boolean credentialsNonExpired;
+    @Builder.Default
+    private boolean accountNonExpired = true;
 
+    @Builder.Default
+    private boolean accountNonLocked = true;
+
+    @Builder.Default
+    private boolean credentialsNonExpired = true;
+
+    @Builder.Default
     @Column(nullable = false)
-    private boolean enabled;
+    private boolean enabled = false;
 
     @Column(nullable = false)
     @NotBlank(message = "Full name must not be blank")
@@ -56,19 +62,18 @@ public class User extends Auditable implements UserDetails, Serializable {
     private String randomTokenEmail;
 
     @Transient
+    @JsonIgnore
     private String passwordConfirm;
 
     @Transient
     private String emailConfirm;
 
+    @Builder.Default
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "users_roles",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "role_id"))
     private Set<Role> roles = new HashSet<>();
-
-    @Transient
-    private List<GrantedAuthority> authorities = null;
 
     @Version
     private Long version;
@@ -83,36 +88,19 @@ public class User extends Auditable implements UserDetails, Serializable {
         this.accountNonLocked = user.isAccountNonLocked();
         this.credentialsNonExpired = user.isCredentialsNonExpired();
         this.email = user.getEmail();
-    }
-
-    public User(String username, String password, boolean enabled, boolean accountNonExpired,
-                boolean credentialsNonExpired, boolean accountNonLocked, List<GrantedAuthority> authorities) {
-        this.username = username;
-        this.password = password;
-        this.enabled = enabled;
-        this.accountNonExpired = accountNonExpired;
-        this.credentialsNonExpired = credentialsNonExpired;
-        this.accountNonLocked = accountNonLocked;
-        this.authorities = authorities;
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return this.authorities;
+        this.password = user.getPassword();
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        User user = (User) o;
-        return Objects.equals(id, user.id);
+        if (!(o instanceof User other)) return false;
+        return id != null && id.equals(other.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id);
+        return id != null ? id.hashCode() : 31;
     }
 
 }
