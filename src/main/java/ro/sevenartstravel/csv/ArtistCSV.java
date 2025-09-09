@@ -2,7 +2,6 @@ package ro.sevenartstravel.csv;
 
 import com.opencsv.bean.CsvBindByName;
 import lombok.Data;
-import ro.sevenartstravel.enums.Nationality;
 
 @Data
 public class ArtistCSV {
@@ -18,6 +17,6 @@ public class ArtistCSV {
     @CsvBindByName
     private Integer deathYear;
     @CsvBindByName
-    private Nationality nationality;
+    private String nationality;
 
 }

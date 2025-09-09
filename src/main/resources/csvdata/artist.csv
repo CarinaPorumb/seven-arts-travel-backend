@@ -1,0 +1,6 @@
+name,biography,imageUrl,birthYear,deathYear,nationality
+"Leonardo da Vinci","Italian polymath of the High Renaissance.","https://example.com/images/leonardo.jpg","1452","1519","ITALIAN"
+"Pablo Picasso","Spanish painter and sculptor; co-founder of Cubism.","https://example.com/images/picasso.jpg","1881","1973","SPANISH"
+"Vincent van Gogh","Dutch Post-Impressionist painter.","https://example.com/images/vangogh.jpg","1853","1890","DUTCH"
+"Frida Kahlo","Mexican painter known for self-portraits.","https://example.com/images/frida.jpg","1907","1954",""
+"Claude Monet","French Impressionist painter.","https://example.com/images/monet.jpg","1840","1926","FRENCH"
