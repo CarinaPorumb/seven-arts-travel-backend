@@ -3,6 +3,7 @@ package ro.sevenartstravel.service.util;
 import jakarta.persistence.criteria.Path;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.time.LocalDate;
 import java.util.Collection;
 
 public class SpecificationUtils {
@@ -57,9 +58,16 @@ public class SpecificationUtils {
         };
     }
 
-    public static <T> Specification<T> isNull(String attributeName) {
-        return (root, query, criteriaBuilder)
-                -> criteriaBuilder.isNull(root.get(attributeName));
+    public static <T> Specification<T> onDayIfPresent(String attributeName, LocalDate date) {
+        if (date == null) {
+            return null;
+        }
+        var start = date.atStartOfDay();
+        var end = date.plusDays(1).atStartOfDay();
+        return (root, query, cb) -> cb.and(
+                cb.greaterThanOrEqualTo(root.get(attributeName), start),
+                cb.lessThan(root.get(attributeName), end)
+        );
     }
 
     public static <T> Specification<T> andSpec(Specification<T> base, Specification<T> add) {

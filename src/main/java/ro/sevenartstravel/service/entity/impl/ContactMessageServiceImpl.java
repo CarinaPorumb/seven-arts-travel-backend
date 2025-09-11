@@ -12,10 +12,12 @@ import ro.sevenartstravel.mapper.ContactMessageMapper;
 import ro.sevenartstravel.repository.ContactMessageRepository;
 import ro.sevenartstravel.service.crud.CrudServiceImpl;
 import ro.sevenartstravel.service.entity.ContactMessageService;
-import ro.sevenartstravel.service.util.SpecificationUtils;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.UUID;
+
+import static ro.sevenartstravel.service.util.SpecificationUtils.*;
 
 @Slf4j
 @Service
@@ -30,68 +32,55 @@ public class ContactMessageServiceImpl extends CrudServiceImpl<ContactMessageDTO
         this.contactMessageMapper = contactMessageMapper;
     }
 
-    private Specification<ContactMessage> buildSpecification(String username, String email, String subject, String message, LocalDate createdDate) {
-        return Specification.where(SpecificationUtils.<ContactMessage>attributeLike("username", username))
-                .and(SpecificationUtils.attributeLike("email", email))
-                .and(SpecificationUtils.attributeLike("subject", subject))
-                .and(SpecificationUtils.attributeLike("message", message))
-                .and(SpecificationUtils.attributeEquals("createdDate", createdDate));
+    private Specification<ContactMessage> buildSpecification(String username, String email, String subject,
+                                                             String message, LocalDate createdDate) {
+        Specification<ContactMessage> specification = null;
+
+        specification = andSpec(specification, likeIfPresent("username", username));
+        specification = andSpec(specification, likeIfPresent("email", email));
+        specification = andSpec(specification, likeIfPresent("subject", subject));
+        specification = andSpec(specification, likeIfPresent("message", message));
+        specification = andSpec(specification, onDayIfPresent("createdDate", createdDate));
+
+        return specification;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ContactMessageDTO> getAllContactMessages(String username, String email, String subject, String message, LocalDate createdDate, Pageable pageable) {
+    public Page<ContactMessageDTO> getAllContactMessages(String username, String email, String subject,
+                                                         String message, LocalDate createdDate,
+                                                         Pageable pageable) {
         Specification<ContactMessage> specification = buildSpecification(username, email, subject, message, createdDate);
-        log.debug("Listing all contact messages  with filters - Username: {}, Email: {}, Subject {}, Message: {}, Date: {},", username, email, subject, message, createdDate);
+        log.debug("Listing contact messages with filters: username={}, email={}, subject={}, message={}, createdDate={}",
+                username, email, subject, message, createdDate);
         return contactMessageRepository.findAll(specification, pageable).map(contactMessageMapper::toDTO);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<ContactMessageDTO> getContactMessagesByUsername(String username, Pageable pageable) {
-        log.debug("Fetching contact messages by username: {}", username);
-        return contactMessageRepository.findByUsernameIgnoreCase(username, pageable)
-                .map(contactMessageMapper::toDTO);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<ContactMessageDTO> getContactMessagesByEmail(String email, Pageable pageable) {
-        log.debug("Fetching contact messages by email: {}", email);
-        return contactMessageRepository.findByEmailContainsIgnoreCase(email, pageable)
-                .map(contactMessageMapper::toDTO);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<ContactMessageDTO> getContactMessagesBySubject(String subject, Pageable pageable) {
-        log.debug("Fetching contact messages by subject: {}", subject);
-        return contactMessageRepository.findBySubjectContainsIgnoreCase(subject, pageable)
-                .map(contactMessageMapper::toDTO);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<ContactMessageDTO> getContactMessagesByDate(LocalDate createdDate, Pageable pageable) {
-        log.debug("Fetching contact messages by created date: {}", createdDate);
-        return contactMessageRepository.findByCreatedDate(createdDate, pageable)
-                .map(contactMessageMapper::toDTO);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<ContactMessageDTO> getContactMessagesByDateBetween(LocalDate startDate, LocalDate endDate, Pageable pageable) {
-        log.debug("Fetching contact messages by between dates: {} - {}", startDate, endDate);
-        return contactMessageRepository.findByCreatedDateBetween(startDate, endDate, pageable)
-                .map(contactMessageMapper::toDTO);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<ContactMessageDTO> searchContactMessages(String keyword, Pageable pageable) {
         log.debug("Searching contact messages with keyword: {}", keyword);
-        return contactMessageRepository.searchContact(keyword, pageable)
+
+        if (keyword == null || keyword.isBlank()) {
+            return Page.empty(pageable);
+        }
+        String value = keyword.trim();
+
+        Specification<ContactMessage> specification = null;
+
+        specification = orSpec(specification, likeIfPresent("username", keyword));
+        specification = orSpec(specification, likeIfPresent("email", keyword));
+        specification = orSpec(specification, likeIfPresent("subject", keyword));
+        specification = orSpec(specification, likeIfPresent("message", keyword));
+
+        try {
+            LocalDate day = LocalDate.parse(value);
+            specification = orSpec(specification, onDayIfPresent("createdDate", day));
+        } catch (DateTimeParseException e) {
+            log.debug("Keyword '{}' is not a valid yyyy-MM-dd date; skipping date filter.", value);
+        }
+
+        return contactMessageRepository.findAll(specification, pageable)
                 .map(contactMessageMapper::toDTO);
     }
-
 }

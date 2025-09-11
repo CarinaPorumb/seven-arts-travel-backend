@@ -3,22 +3,15 @@ package ro.sevenartstravel.service.entity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import ro.sevenartstravel.dto.ContactMessageDTO;
+import ro.sevenartstravel.service.crud.CrudService;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
-public interface ContactMessageService {
+public interface ContactMessageService extends CrudService<ContactMessageDTO, UUID> {
 
-    Page<ContactMessageDTO> getAllContactMessages(String username, String email, String subject, String message, LocalDate date, Pageable pageable);
-
-    Page<ContactMessageDTO> getContactMessagesByUsername(String username, Pageable pageable);
-
-    Page<ContactMessageDTO> getContactMessagesByEmail(String email, Pageable pageable);
-
-    Page<ContactMessageDTO> getContactMessagesBySubject(String subject, Pageable pageable);
-
-    Page<ContactMessageDTO> getContactMessagesByDate(LocalDate date, Pageable pageable);
-
-    Page<ContactMessageDTO> getContactMessagesByDateBetween(LocalDate startDate, LocalDate endDate, Pageable pageable);
+    Page<ContactMessageDTO> getAllContactMessages(String username, String email, String subject, String message,
+                                                  LocalDate createdDate, Pageable pageable);
 
     Page<ContactMessageDTO> searchContactMessages(String keyword, Pageable pageable);
 
